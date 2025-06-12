@@ -1,0 +1,760 @@
+﻿                                         Engineering Applications of Artificial Intelligence 133 (2024) 107983
+
+                                                     Contents lists available at ScienceDirect 
+
+                              Engineering Applications of Artificial Intelligence 
+
+                                            journal homepage: www.elsevier.com/locate/engappai 
+
+
+Underwater acoustic target recognition based on sub-band concatenated 
+Mel spectrogram and multidomain attention mechanism 
+
+Shuang Yang       1, Anqi Jin   1, Xiangyang Zeng        *, Haitao Wang      , Xi Hong    , Menghui Lei 
+
+School of Marine Science and Technology, Northwestern Polytechnical University, Xi’an 710072, China   
+
+
+ARTICLE INFO                                  ABSTRACT  
+
+Keywords:                                     Underwater acoustic target recognition is extremely challenging because of the pronounced background noise 
+Underwater acoustic target recognition        and intricate sound propagation patterns inherent to maritime environments. Herein, we propose a sub-band 
+Mel spectrogram                               concatenated Mel spectrogram to amplify low-frequency ship-radiated noise. This method enhances features 
+Attention mechanism 
+                                              through multispectrogram concatenation. Furthermore, we introduce a multidomain attention mechanism to 
+Residual network 
+                                              enhance the performance of a simple residual network to develop a lightweight CFTANet model. The recognition 
+                                              accuracies of the recognition system are 90.60% and 96.40% on two open datasets. On the DeepShip dataset, the 
+                                              recognition accuracy is 7.06% higher than those of previous state-of-the-art methods.   
+
+
+1. Introduction                                                            practical application scenarios. 
+                                                                              In recent years, owing to the updated iteration of computer hardware 
+   The  objectives and tasks of underwater  acoustic-signal processing     and the continuous  innovation  of deep  learning theory (Hinton  and 
+(UASP)   can  be broadly  classified into four  categories: detection,     Salakhutdinov, 2006; Krizhevsky et al., 2012), deep learning has affor­
+tracking, localization, and recognition.  Underwater   acoustic target     ded satisfactory results in the fields of computer vision (Liu et al., 
+recognition (UATR) is an information-processing technique that utilizes    2021a),  natural language  processing  (Vaswani   et al., 2017), data 
+active target echoes from sonar, passive target-radiated noise, and other  enhancement (Goodfellow et al., 2014; Kim et al., 2021; Ge et al., 2021; 
+sensor data to extract features for determining the target type. As the    Zhang  et al., 2019a), data noise reduction (Park and Lee, 2017), etc. 
+ultimate goal of UASP,  UATR   has  become  increasingly important  in     Several influential network models have emerged in the field of com­
+national defense  applications (Teng  and  Zhao, 2020).  Additionally,     puter vision, among which the classic representatives are convolutional 
+owing  to the continuous development   of underwater  unmanned   plat­     neural networks (CNNs), Transformers (Dosovitskiy et al., 2020), and 
+form  technology, endurance  and  autonomous   navigation  capabilities    graph convolutional neural networks (GCNs) (Kipf and Welling, 2016). 
+continue to improve, and the overall design and manufacturing level of     Classic CNN  architectures such as AlexNet  (Krizhevsky et al., 2012), 
+the all-ocean deep submarine standard has advanced significantly (Lin      VGG  (Simonyan   and Zisserman,  2014), and  ResNet (He  et al., 2016) 
+et al., 2023; Tijjani et al., 2022; Wang et al., 2020a; Hou et al., 2022). have not only set new records in terms of accuracy and performance but 
+The  use  of machine   learning  to conduct  automatic   identification    have also resulted in breakthroughs   in hardware  acceleration using 
+research has intensified, particularly for unmanned marine equipment       GPUs and TPUs. In recent years, the Transformer architecture, which has 
+(Song  et al., 2023; Dzikowicz et al., 2023). Furthermore, unmanned        been shown effective in natural language processing, has gradually been 
+equipment are increasingly being operated, which has resulted in the       extended to computer vision tasks. For example, the Vision Transformer 
+integration of UATR and unmanned equipment technology. However, to         model (Dosovitskiy et al., 2020) introduces self-attention mechanisms 
+realize these application prospects, the pertinent research and devel­     into image processing, thus enabling efficient representation learning 
+opment must be continued. This includes improving the accuracy of the      from images. Additionally, GCNs provide a new approach for modeling 
+algorithms involved, identifying new methods for data acquisition and      objects and scenes in images (Xu et al., 2021). These advanced computer 
+processing, and conducting real-world testing and validation for various   vision algorithms are beneficial to UATR.   Computer  vision requires 
+
+
+ * Corresponding author. 
+   E-mail addresses: yang_s@mail.nwpu.edu.cn (S. Yang), jinaq@mail.nwpu.edu.cn (A. Jin), zenggxy@nwpu.edu.cn (X. Zeng), wht@nwpu.edu.cn (H. Wang), 
+xihong@mail.nwpu.edu.cn (X. Hong), leimenghui@mail.nwpu.edu.cn (M. Lei).   
+ 1 Shuang Yang and Anqi Jin are co-first authors. 
+
+https://doi.org/10.1016/j.engappai.2024.107983 
+Received 25 August 2023; Received in revised form 13 December 2023; Accepted 24 January 2024   
+Available online 19 February 2024
+0952-1976/© 2024 Elsevier Ltd. All rights reserved.
+S. Yang et al.                                                                                                                                                                Engineering                  Applications                  of    Artificial                Intelligence            133 (2024) 107983
+
+efficientsignal  processing and complex relationship modeling, similar to  Experimental results show that the proposed CFTANet achieves 90.60% 
+the UATR. The application of Transformer models, including the Swin        optimal  recognition  results on  DeepShip,   which  is a  significant 
+Transformer,  to UATR  has intensified (Feng and Zhu,  2022; Li et al.,    improvement over other classical methods. A high recognition rate of 
+2022; Xu et al., 2023; Chen et al., 2024). However, the large-scale pa­    96.40% is achieved on ShipsEar. Additionally, owing to its lightweight 
+rameters and high-performance GPU requirements of Transformers and         parameters and FLOPs, the CFTANet model is suitable for deployment to 
+Swin Transformer models pose deployment challenges. Additionally, the      underwater unmanned platforms. 
+scarcity of data in underwater target recognition tasks, particularly in      The remainder of the paper is organized as follows: Section 2 pre­
+specific application scenarios, limits the performance of model  algo­     sents the relevant surveys. Section 3 describes the proposed  SC-Mel 
+rithms and  prevents  them  from  achieving  competitive performance       feature method  and introduces  the proposed  CFTANet.  Section 4 de­
+levels. Therefore, further research is required to maintain high perfor­   scribes the setup of the experimental datasets and  the setting of the 
+mances while reducing model complexity to facilitate broader applica­      specific experimental parameters. Section 5 presents the experimental 
+tions. Jiang et al. (2022) proposed the S-ResNet model, which combines     results and discussion, including the recognition performances of two 
+a CNN and SqueezeNet, to achieve good classification accuracy while        datasets and details regarding ablation experiments. Finally, Section 6 
+significantly reducing the model  complexity. Tian et al. (2023) used      presents the conclusions and directions for future research. 
+lightweight network design techniques to create a lightweight MSRDN, 
+which reduced the number of parameters by 64.18%, reduced and the          2. Related studies 
+FLOPs by 79.45% from the original MSRDN with minimal accuracy loss, 
+and achieved an  accuracy of  79.50% on the  DeepShips dataset.  Yang      2.1. Challenges and frontier research for UATR 
+et al. (2023)  introduced  a lightweight LW-SEResNet10    model   that 
+combined ResNet10 and the channel attention mechanism, which ach­             Ferguson et al. (2017) proposed a CNN based on cepstrum inputs, 
+ieved a  97.7%  classification accuracy on  the ShipsEar  dataset and      which achieved an accuracy of 99.78% on a self-measured ship-radiated 
+afforded balance between classificationaccuracy  and model complexity.     noise dataset. The proposed  model  successfully detected and  ranged 
+These lightweight CNN models not only maintain high performance but        sources at long distances under different signal-to-noise ratios (SNRs). 
+also significantlyreduce  computational and resource requirements, thus    Choi et al. (2019) simulated acoustic data from multiple sources with 
+rendering them suitable for practical applications and deployment. By      multiple SNRs and uniformly generated samples in each depth region 
+adopting  lightweight CNN  models,  UATR   technology  can be applied      using a normal model and a reciprocal spectral covariance matrix. The 
+more  widely  to satisfy the requirements of different scenarios. This     experimental  results demonstrated  the superiority of the CNN   as a 
+provides further possibilities for future research and practical applica­  feature extractor and classifier. In a four-stage method, the discrete 
+tions to achieve more efficient, scalable, and practical UATR systems.     wavelet transform (DWT) was used to classify underwater acoustic sig­
+   In general, the  sound  pressure channel  of hydroacoustic  signals     nals with noise robustness (Kim et al., 2021). The stages included white 
+comprises  one-dimensional  time-domain  data from  20 Hz  to 20 kHz.      noise elimination based on the DWT, an imaging stage where the spec­
+Unlike general pattern recognition, such as image recognition based on     trogram  of  the  discrete wavelet  coefficients was  obtained,  data 
+deep learning, which  can directly use image  data as the input to the     augmentation, and the final classification stage. With its classification 
+network, for hydroacoustic signals with a long duration and high sam­      accuracy of 99.7% and SNR of 0 dB, the wavelet transform demonstrated 
+pling rate, the network may be overburdened if raw data are directly       its effectiveness for improving the noise robustness of the system and 
+used as the input without frame-splitting processing. Raw data typically   surpassed six different CNN architectures. Vahidpour et al. (2015) per­
+contain noise and interference (Domingos et al., 2022). As ocean noise     formed preprocessing to reduce the effect of noise and provide signals 
+and interference information increase, the expression of the target be­    for feature extraction. To extract useful features, a binary image was 
+comes weaker, whereas the transform-domain features can express the        created based on the signals’ segmentation spectrum. Third, the signals 
+target more efficientlyand  increase the class spacing between different   were classifiedusing  a neural classifier.Consequently,  an accuracy rate 
+classes. Therefore, owing to the  specificity of hydroacoustic signals,    of  95.1%   was  achieved   on  a  five-class acoustic  dataset.  The 
+most studies pertaining to hydroacoustic target recognition are based on   feature-extraction and deep-learning  methods   above  have  achieved 
+feature extraction, and the manually extracted features are used as in­    good results on different datasets; however, the research methods are 
+puts for classification.Moreover,  the use of artificialfeature  parameters difficultto  replicate because of the confidentialityof  the data. Therefore, 
+such as Mel-frequency cepstral coefficients (MFCCs) (Liu et al., 2008),    studies based on public datasets are necessary. 
+constant-Q transform (Irfan et al., 2021), wavelet features (Wei et al.,      Two  crucial open datasets were  used in this study, i.e., DeepShip 
+2011), DEMON and LOFAR spectra (Chen and Xu, 2017), and high-order         (Irfan et al., 2021) and  ShipsEar (Santos-Domínguez    et al., 2016). 
+spectral features (Liu et al., 2021b) has effectively reduced information  ShipsEar has been used more extensively because of its earlier public 
+redundancy and minimized computational costs in backend models. The        availability. In the convolutional recurrent neural network   (CRNN) 
+Mel spectrogram reflectsthe  human perceptual characteristics of speech    model established by Liu et al. (2021b), Mel spectrograms from three 
+and is a frequency feature extracted at a Mel-scale frequency. The Mel     channels were utilized as network inputs and time-domain transforms, 
+spectrogram is more consistent with the auditory characteristics of the    and time–frequency   masking  was  employed  to  improve  the data. A 
+human ear; therefore, it is widely used in speech recognition and UATR     CRNN based on a CNN and LSTM was established to extract local and 
+(Zhu et al., 2023a). Inspired by the radiated noise characteristics of ships timing-related aspects of the signal. To improve recognition results, 
+and  considering the  disadvantages  of low-frequency  signal-focusing     Hong   et al. (2021)  proposed   a  data-enhancement    strategy with 
+feature-extraction techniques, such as the Mel spectrogram, we propose     three-dimensional fusion features and SpecAugment and constructed an 
+a sub-band concatenated Mel (SC-Mel) spectrogram to solve the problem      18-layer residual network  (ResNet18)  on  this basis; consequently, a 
+of feature extraction by jointly realizing feature signal enhancement via  correct recognition rate of 94.3% was achieved on the dataset. Other 
+a multispectrogram. Subsequently, to efficientlyextract  time–frequency    novel methods, such as deep recurrent wavelet autoencoders (Khishe, 
+features, we construct simple residual networks to obtain lightweight      2022)  and AMNet   (Wang   et al., 2023), which couple  attention and 
+networks that can be deployed easily. Finally, to combine the features in  multibranching, have  validated the effectiveness of these methods on 
+each frequency band and the information interaction of the features in     ShipsEar. DeepShip is used less frequently compared with ShipsEar as it 
+each time frame as well as to enhance the features of each channel, we     had only been proposed recently. Tian et al. (2023) proposed a light­
+propose two modules, i.e., frequency attention and the CFTA block. The     weight MSRDN model that compensates for the absence of single modal 
+CFTA block comprises successive channel, frequency, and time attention     features by  combining    one-dimensional  time-domain    modes   and 
+mechanisms.    The   recognition  model   is  named    the  CFTANet.       two-dimensional  time–frequency-domain    modes,   which  resulted in 
+
+                                                                        2
+S. Yang et al.                                                                                                                                                                Engineering                  Applications                  of    Artificial                Intelligence            133 (2024) 107983
+
+
+                                                    Fig. 1. Framework of proposed UATR system.  
+
+performance  improvements   on  both the ONC  and  DeepShip  datasets.     Woo et al. (2018) introduced a convolutional block attention module 
+Ren et al. (Ren et al., 2022; Xie et al., 2022) constructed several learn­ that concatenates channel  attention and spatial attention. Song et al. 
+able model systems from different perspectives to improve the model’s      (2017) proposed a joint spatial and temporal attention network based on 
+recognition performance. Zhang et al. (Zhang and Zeng, 2023) proposed      LSTM  to adaptively identify distinctive features and key frames. For 
+the MSLEFC   system,  which  combines  multiscale time–frequency  fea­     UATR,  Wang et  al. (2023) utilized a convolutional attention network 
+tures, trapezoidal coding, and frequency  attention. The method   ach­     that combined  channel  and  spatial attention modules  to adaptively 
+ieved improvement    on several public  datasets compared  with  most      select effective features by weighting the global information of under­
+novel methods.  In the current study, we  use two  open  datasets, i.e.,   water  time–frequency  maps.  Zhu  et al. (2023b)  integrated a  joint 
+DeepShip  and  ShipsEar, to validate the performance  of the proposed      attention module into DenseNet to enhance the ability of the model to 
+model.                                                                     recognize multiple target signals in mixed underwater signals through 
+                                                                           joint time, spatial, channel, and self-attention. Jin et al. (Jin and Zeng, 
+                                                                           2023) incorporated channel and time attention mechanisms into ResNet 
+2.2. Attention mechanisms                                                  and DenseNet to extract feature information from the channel and the 
+                                                                           time  dimensions  of  underwater  acoustics. Various  joint  attention 
+   The method of focusing on the most critical areas within an image       methods have been successfully applied in UATR, thus demonstrating 
+while disregarding  irrelevant components  is known   as the attention     that multidomain joint attention can effectively focus on inherent fea­
+mechanism. In the visual system, the attention mechanism is a dynamic      tures within nonstationary underwater signals, thereby improving target 
+selection process that adaptively weights the input features to reflect    recognition performance. 
+their importance. Guo et al. (2022) categorized attention methods based 
+on the data domain into channel attention (Wang et al., 2020b), spatial    3. Proposed method 
+attention (Dosovitskiy et al., 2020), temporal attention (Zhang et al., 
+2019b),  and  branch  attention (Li et al., 2019). Different channels         The framework of the UATR system used in this study, which focuses 
+represent different objects in a deep neural network. In adaptive channel  on feature extraction, simple residual networks, and attention modules, 
+attention, where   the  importance  of  each  channel  is  reweighted      is shown in Fig. 1. First, to maximize the utilization of raw data, we 
+dynamically, objects are selected the area of focus is determined. Spatial conducted a series of feature extraction steps on the raw data, including 
+attention mechanisms   can be regarded  as adaptive  spatial-region se­    short-time Fourier transform (STFT), sub-band Mel filtering, and mul­
+lection mechanisms  and  are typically employed  to capture global in­     tispectrum concatenation. These feature extraction steps can amplify the 
+formation. Meanwhile,   temporal  attention is considered  a dynamic       low-frequency information of ship-radiated noise and allow the model to 
+time-selection mechanism   used to determine  the time at which  focus     learn more dimensional Mel features. Subsequently, to efficientlyextract  
+should  be  directed, which  emphasizes   the  capture of  short- and      time–frequency features, we established a simple residual network and 
+long-term interframe feature dependencies.                                 classifiedthe  radiated noise features into different categories. Finally, to 
+   Furthermore,  various joint attention techniques have  been widely      enhance  the feature information of the channel, frequency, and  time 
+applied. To enhance information channels and emphasize critical areas, 
+
+                                                                        3
+S. Yang et al.                                                                                                                                                                Engineering                  Applications                  of    Artificial                Intelligence            133 (2024) 107983
+
+
+                                                 Fig. 2. Block diagram of feature-extraction method.  
+
+dimensions  of the input features, we propose two  attention modules:      function and balanced the time–frequency resolution by adjusting the 
+frequency  attention and the CFTA   block. The CFTA   block comprises      frame length and frameshift. STFT firstsegmented  the signal into frames 
+continuous  channel, frequency, and  time attention. Our experimental      and  then performed   a Fourier transform  on  each  frame. When   an 
+results show that the frequency attention and CFTA blocks significantly    appropriate time window function and frequency resolution are selected 
+improved the performance of the proposed UATR system.                      for the time–frequency  analysis of the signals, various time-varying 
+                                                                           characteristics, including the low-frequency line spectrum and modu­
+                                                                                                                               ’
+3.1. Feature extraction                                                    lation spectrum, can be  obtained (Boashash  and  O shea, 1990).  The 
+                                                                           amplitude spectrum was extracted from the Fourier transform result of 
+   Feature  extraction is key  in UATR.   The  raw  time-domain  data      each frame  and then  squared  to obtain the power  spectrum  of each 
+received by  a hydrophone  can  be referred to as raw features, which      frame. Each frame signal can be regarded as intercepted from different 
+generally contain  a significant amount  of data and  cannot  be used      relatively stable short-term waveforms, and the power spectrum of each 
+directly as recognition feature quantities. To achieve effective classifi­ frame ship-radiated noise signal an approximation of the power spec­
+cation and recognition, one must select or transform the original fea­     trum of each relatively stable waveform. The power spectra of all frames 
+tures, obtain the features that best reflect the essence of classification, in the time sequence were concatenated to obtain a spectrogram. The 
+and form a feature matrix. For ship-radiated noise, feature extraction     spectrogram  shows  the energy distribution of the signals at different 
+should satisfy three requirements: first,the  number of extracted features times and frequencies, which can intuitively show the changes in signal 
+should be small and may include slight redundancies; second, sufficient    energy with time. 
+information should  be available to best distinguish between different        Enhancing the feature signal allows the depth model to learn more 
+categories; and third, it should be insensitive to typically encountered   features and patterns, thus improving   its generalization ability and 
+changes  and  distortions, i.e., it must be highly robust.  Generally,     performance. For UATR, Liu et al. expanded audio data by extracting a 
+increasing the amount of feature information can improve the recogni­      Mel spectrogram  and  its incremental features, thereby capturing the 
+tion performance but can cause feature redundancy. Therefore, balance      dynamic characteristics of ship-radiated noise (Liu et al., 2021b). Yang 
+must  be achieved between   recognition performance  and  redundancy.      et al. proposed a similar method to extract the MFCC and incremental 
+Fig. 2 illustrates the specificfeature-extraction  process used in our study. features of ship-radiated noise to increase the amount of dynamic 
+   The  mechanism   of ship-radiated noise signals is complex, and the     feature information (Yang et al., 2023). Zhang et al. proposed a multi­
+underwater  acoustic  propagation  channel is affected by  the sound-      scale STFT method to improve low-frequency information and maintain 
+velocity distribution, sea waves,  seabed  terrain, seabed  sediment,      detailed information by increasing the number of channels (Zhang and 
+seawater medium, and internal waves. It is a complex, time-varying, and    Zeng, 2023). In this study, an SC-Mel spectrogram is proposed, and the 
+spatially variable channel. Considering that the short-time characteris­   spectrogram  is enhanced  by  combining   sub-band  Mel  filtering and 
+tics of ship-radiated noise target signals can reflect the temporal dy­    multispectrum concatenation. The Mel spectrogram is a spectrum rep­
+namic   characteristics, thus  describing  the  time–frequency   local     resentation method typically used in audio signal processing and speech 
+characteristics of radiated noise  signals more  accurately, an  STFT      recognition. It describes the energy distribution of sound signals at the 
+(Haykin and Van Veen, 2007) was firstperformed   on the signal, which is   Mel scale. To perform calculations based on the Mel spectrogram, Mel 
+defined as follows:                                                        filter banks are used to weight the spectrogram,  which  can map  the 
+                                                                           high-dimensional   features  of   the  original  spectrogram    to  a 
+          ∑∞
+                            jωk
+S(ω, n) =     s(k)w(n   k)e   ,                                    (1)     lower-dimensional  Mel  spectrogram   representation and  realize the 
+         k=  ∞                                                             compression  of audio information. The Mel scale  is a nonlinear pitch 
+                                                                           perception scale related to human auditory characteristics. The human 
+where  w(n)  is a window  function  that propagates  with time  n. We      ear is more sensitive to changes at lower frequencies than to those at 
+reduced the spectrum leakage by weighting the signal with the window 
+
+                                                                        4
+S. Yang et al.                                                                                                                                                                Engineering                  Applications                  of    Artificial                Intelligence            133 (2024) 107983
+
+
+                                   Fig. 3.  Comprehensive structure of CFTANet model for identifying underwater acoustics target.  
+
+
+                                                       Fig. 4. Structural diagram of channel attention mechanism.  
+
+
+                                                      Fig. 5. Structural diagram of frequency attention mechanism.  
+
+
+                                                        Fig. 6.  Structural diagram of time attention mechanism.  
+
+higher frequencies. The Mel scale simulates the perceptual characteris­                   these parameters can be approximated as follows: 
+                                                                                                                  (         )
+tics of the human ear accurately by converting frequency into the Mel                                                    f
+frequency. The Mel frequency scale presents a logarithmic relationship                    Mel(f ) = 2595  × log     1 +       ,
+                                                                                                                10      700                                               (2) 
+with  the  actual  frequency    (Koening,    1949). The    relationship   between 
+
+                                                                                      5
+S. Yang et al.                                                                                                                                                                Engineering                  Applications                  of    Artificial                Intelligence            133 (2024) 107983
+
+Table 1 
+Detailed parameters of CFTANet.  
+
+  Layer name             Output size                      CFTANet 
+
+  Feature                384 ×  94 × 1  
+  Frequency Attention    384 ×  94 × 1  
+  Convolution            192 ×  47 × 64                   7 × 7, 64, stride 2 
+                            ×     ×                         ×
+  Maxpool                96    24   64                    ⎡3  3, stride 2      ⎤
+  CFTA Block             96 ×  24 × 64                      Channel Attention
+                                                          ⎣ Frequency Attention ⎦
+                                                            Time Attention
+                            ×     ×                         ×
+  Residual Block         48    12   128                   ⎡3  3 Conv, 128, stride⎤ 2 
+  CFTA Block             48 ×  12 × 128                     Channel Attention
+                                                          ⎣ Frequency Attention ⎦
+                                                            Time Attention
+                            ×    ×                          ×
+  Residual Block         24    6   256                    ⎡3  3 Conv, 256, stride⎤ 2 
+  CFTA Block             24 ×  6 × 256                      Channel Attention
+                                                          ⎣ Frequency Attention ⎦
+                                                            Time Attention
+  Classification layer   1 × 1 ×  4 (number of classes)   Global average pool 
+                                                          Fully connected 
+                                                          LogSoftmax  
+
+
+Table 2 
+Performance of CFTANet on two test sets.  
+
+  Dataset      Class            Precision (%)    Recall (%)   F1-score    Support 
+
+  DeepShip     Cargo            86.79            86.23        0.8651      3841 
+               Passengership    89.66            95.93        0.9269      4591 
+               Tanker           90.05            87.28        0.8865      4459 
+               Tug              96.14            92.37        0.9422      4049 
+               Weighted avg     90.66            90.60        0.9059      16,940 
+  ShipsEar     Class A          100.00           100.00       1.0000      67 
+               Class B          94.02            93.22        0.9362      118 
+               Class C          95.46            94.38        0.9492      89 
+               Class D          97.55            96.76        0.9715      247 
+               Class E          95.33            97.95        0.9662      146 
+               Weighted avg     96.41            96.40        0.9640      667  
+
+where f denotes the actual frequency (Hz), and. Mel(f) is the perceptual 
+frequency in Mel. 
+    In our study, sub-band Mel filtering intercepted the extracted spec­
+trogram in the sub-band, and Mel filtering was performed on multiple 
+sub-bands    to  obtain   Mel  spectrograms     in  different  frequency    bands. 
+Subsequently, the Mel spectrograms of different frequency bands were 
+spliced along the frequency dimension to obtain the characteristics of                    Fig. 7. t-SNE  visualization of  features in CFTANet.   (a) DeepShip   test set; (b) 
+the  input   model.   Compared     with   withdrawing     the  Mel   spectrogram          ShipsEar test set. 
+directly with N Mel filtersin     the entire frequency band, our method uses 
+independent N Mel filters in each frequency band, which increases the 
+frequency resolution of the spectrogram and clearly displays the char­                    Table 3 
+acteristics of each frequency band. In UATR, more detailed feature in­                    Comparison between proposed CFTANet and most advanced method on Deep­
+                                                                                          Ship dataset.  
+formation    is  typically   obtained    at  low   frequencies;    therefore,   we 
+adjusted the sub-bands to 0–1000, 1000–4000, and 4000–8000 Hz as                            Methods                                 Accuracy        Params        FLOPs 
+appropriate to highlight the feature information in the low-frequency                                                               (%)             (M)           (G) 
+range more accurately.                                                                      SCAE (Irfan et al., 2021)               77.53           1.80          6.001 
+                                                                                            Lightweight MSRDN (Tian et al., 2023)   79.50           11.74         1.397 
+                                                                                            UALF (Ren et al., 2022)                 81.39           /             / 
+                                                                                            UART (Xie et al., 2022)                 76.56           /             / 
+3.2.  Proposed CFTANet                                                                      MSLEFC (Zhang and Zeng, 2023)           82.94           15.75         1.5596 
+                                                                                            Swin Transformer (Xu et al., 2023)      80.22           88            / 
+    In  this study,   a  simple   residual  network    was   used   as  a  feature-         ConvNeXt (Liu et al., 2022)             83.54           26.51         2.5580 
+extraction network, and a frequency attention module and CFTA block                         CFTANet (ours)                          90.60           0.47          0.1186  
+were   proposed     for  identifying   underwater     acoustic    targets.  In  the 
+CFTANet model, the successive channel attention, frequency attention,                     3.2.1.  Simple residual network 
+and time attention modules are defined as CFTA blocks. The CFTANet                            ResNet was proposed to solve the problem of deep neural network 
+model is described based on two aspects: depth feature extraction using                   degradation    (He  et  al., 2016).  Its main   feature   is a “residual   block,” 
+a simple residual network and feature enhancement using a CFTA block.                     which allows the network to traverse directly across layers and train the 
+As  shown    in Fig.  3, the  framework     of  the  proposed    CFTANet    model         network by capturing the residual, thus allowing the network to train 
+primarily comprises a convolution layer, two simple residual blocks, one                  extremely    deep   layers  more   easily.  In  this  study,  a  simple   residual 
+frequency    attention   block,   and   three   CFTA    blocks.   The   process   is      structure was used to form a residual network. A simple residual block is 
+described comprehensively in the following section. 
+
+                                                                                      6
+S. Yang et al.                                                                                                                                                                Engineering                  Applications                  of    Artificial                Intelligence            133 (2024) 107983
+
+Table 4                                                                    and weakens the non-important feature maps. 
+Comparison between proposed CFTANet with most advanced method on Ship­        First, global average pooling is performed to obtain a 1 × 1 feature 
+sEar dataset.                                                              map with global receptive fields. 
+  Methods                           Accuracy     Params      FLOPs 
+                                                                                           1   ∑H  ∑W
+                                    (%)          (M)         (G)           y = F  (m ) =               m (i, j)
+                                                                            c   sq  c   H ×  W          c                                    (5) 
+  Baseline (Santos-Domínguez et al., 75.4        /           /                                  i=1 j=1
+   2016) 
+  CRNN (Liu et al., 2021b)          94.6         0.45        0.25             Subsequently,  two  fully connected layers are  used to perform  a 
+  ResNet18 (Hong et al., 2021)      94.3         11.19       1.88          nonlinear transformation. 
+  DRW-AE (Khishe, 2022)             94.49        <0.1        0.02 
+                                                                           n = F (y, W) = σ(g(y, W)) = σ(W δ(W  y))
+  AMNet (Wang et al., 2023)         99.4         5.47        0.37               ex                        2    1                             (6) 
+  STM + AudioSet (Li et al., 2022)  97.70        86          / 
+                                                                              The importance weights obtained from Excitation are assigned to the 
+  HUAT (Chen et al., 2024)          98.62        30.03       / 
+  ConvNeXt (Liu et al., 2022)       91.90        26.51       4.59          original input features to obtain new features. 
+  CFTANet (ours)                    96.40        0.47        0.20          ̃
+                                                                           Mc = Fscale (mc, nc) = ncmc                                       (7)  
+
+a residual block in which one convolution layer is used as the primary     3.2.2.2. Frequency attention. The input to the network used in this study 
+component. A simple residual block is more suitable in certain shallow     is a time–frequency  spectrogram,  which  is different from a general 
+networks  or cases involving limited resources as it introduces fewer      image  in that the horizontal and vertical axes of the time–frequency 
+parameters and calculations yet affords performance improvement. In        graph have specificphysical  meanings, i.e., they represent the frequency 
+our study, the  main  section of the simple residual block featured  a     and time, respectively. In this study, the importance of different fre­
+                                ×
+convolution layer comprising a 3   3 convolution kernel with a stride of   quency bands for the recognition task is obtained by constructing fre­
+                                         ×
+2. The residual connection comprised a 1    1 convolution layer with a     quency attention to improve the recognition correctness. As shown in 
+stride of 2. The feature map completes downsampling via a simple re­       Fig. 5, we firstcompress  the channel and time axes of the feature map via 
+sidual block, which can be expressed as                                    GAP. 
+ ′
+x = h   swish(w1x)                                                 (3)                      1   ∑C  ∑W
+                                                                           XH = Fsq(mH ) =              mH (i, j)                            (8) 
+                                                                                         C ×  W  =   =
+   H(x) = x′ + F(x)                                                                              i 1 j 1
+   ′                                                               (4)  
+= x + h   swish(w2x),                                                         Next, a 1 × H ×  1 feature map obtained after compression is incor­
+                                                                           porated into two fully connected layers for learning as follows: 
+where  x represents the  input feature, w1 the weight  of the 1  ×  1 
+                                                                           K = Fex(X, W)                                                     (9) 
+convolution layer, w2 the weight of the 3 × 3 convolution layer, F(x) the 
+residual mapping,   and  h-swish  the  nonlinear  activation  function        Finally, the learned frequency weights are multiplied by the original 
+(Howard et al., 2019). As shown in Fig. 3, the CFTANet uses two simple     feature map to obtain a frequency attention-enhanced feature map. 
+residual blocks to complete two downsampling steps. 
+                                                                           ̃
+                                                                           MH = Fscale (mH , kH ) = kH mH                                   (10) 
+3.2.2. CFTA block                                                             The frequency attention module learns the importance of each fre­
+   In general, neural  networks  provide implicit attention to extract     quency band and improves the network performance. 
+high-dimensional  information  from  data. Incorporating an  attention 
+mechanism   into a network  allows  valid information to be  extracted     3.2.2.3. Time  attention. For underwater   acoustic signals, multiple 
+explicitly. The CFTA block comprises successive channel, frequency, and    samplings in the time domain are important for providing multiple types 
+time attention mechanisms in a sequential series. Next, we describe the    of statistical information. As time progresses, more information will be 
+channel, frequency, and  time attention in the CFTANet   based on  the     obtained, thus  facilitating target categorization. We determine  the 
+theory presented in (Guo et al., 2022).                                    importance of different timeframes by constructing the time attention. 
+                                                                           As shown in Fig. 6, similar to the frequency attention, we obtain the time 
+3.2.2.1. Channel  attention. In the channel attention mechanism,   the     weights by compressing the frequency and channel axes via GAP. 
+network learns the importance of each channel by firstcompressing  the 
+                                                                                            1   ∑C  ∑H
+space of the feature map and then learning the channel dimensions to       Z  = F  (m ) =               m  (i, j)
+                                                                            W    sq  W      ×            W                                  (11) 
+determine the importance of each channel (Hu et al., 2018). As shown in                   C   H  i=1 j=1
+Fig. 4, Squeeze utilizes the global average pooling (GAP) operation to 
+extract the global receptive field(Eq.  (5)), where all feature channels are  Subsequently,  the weights are  learned using two  fully connected 
+abstracted to a  single point; Excitation utilizes two fully connected     layers. 
+layers to perform nonlinear feature transformations to display the con­
+                                                                           G = Fex(Z, W)                                                    (12) 
+struction of correlations between   the feature  maps  (Eq. (6)); and 
+Transform  utilizes the sigmoid activation function to achieve feature        Finally, a time-weighted feature map is obtained by multiplying the 
+recalibration (Eq. (7)), which strengthens the important feature maps      weights with the original feature map: 
+
+Table 5 
+Performance comparison of different methods on DeepShip test set.  
+
+  Methods           Feature        Attention modules                                Accuracy (%)       F1-score       Params(K)        FLOPs(M) 
+
+  1 (Proposed)      SC-Mel         Use all                                          90.60              0.9059         467.726          118.608 
+  2                 Mel            Use all                                          86.74              0.8667         432.065          39.542 
+  3                 SC-Mel         No                                               80.44              0.8026         405.690          118.548 
+  4                 SC-Mel         Frequency Attention                              89.15              0.8913         442.113          118.583 
+  5                 SC-Mel         The CFTA block after max pool layer              88.32              0.8832         409.284          118.551 
+  6                 SC-Mel         Two CFTA blocks after Simple Residual Block layers 87.88            0.8783         427.711          118.569  
+
+                                                                        7
+S. Yang et al.                                                                                                                                                                Engineering                  Applications                  of    Artificial                Intelligence            133 (2024) 107983
+
+
+      Fig. 8. Confusion matrices of different methods on test set. (a) Method 1, (b) Method 2, (c) Method 3, (d) Method 4, (e) Method 5, and (f) Method 6.  
+
+
+                                                                                      8
+S. Yang et al.                                                                                                                                                                Engineering                  Applications                  of    Artificial                Intelligence            133 (2024) 107983
+
+             Table 6                                                       function. The maximum pool layer and two simple residual blocks were 
+             Kappa values of different methods on test set.                followed by  the CFTA  block. The  CFTA  block  comprised  continuous 
+              Methods                        Kappa values                  channel, frequency, and time attention. The feature map enhances the 
+                                                                           channel, frequency,  and  time dimension   information through  these 
+              1                              0.8744 
+              2                              0.8227                        three attention layers while suppressing meaningless feature informa­
+              3                              0.7382                        tion. In the CFTANet, a unifiedsqueezing  excitation operation is adopted 
+              4                              0.8552                        in the frequency attention module   and the attention modules  in the 
+              5                              0.8440                        CFTA block, and the information is recalibrated via two fully connected 
+              6                              0.8377  
+                                                                           layers. After the firstfully  connected layer, the aggregated feature map is 
+                                                                           compressed  to 1/n of the input, and  then nonlinear mapping   is per­
+                                                                           formed  using the h-swish  activation function. After the second fully 
+                                                                           connected layer, the learned channel, frequency, and time information 
+                                                                           are mapped  to 0–1  using a sigmoid activation function. The n in fre­
+                                                                           quency attention is set to 8. The n in the CFTA block after the maximum 
+                                                                           pool layer is set to 8. The n in the CFTA block after the two simple re­
+                                                                           sidual blocks is set to 4.  After the aforementioned   depth  feature- 
+                                                                           extraction process is completed,  the  feature map   is classified and 
+                                                                           recognized through  the  classification layer, which comprises global 
+                                                                           average pooling, a fully connected layer, and a LogSoftmax classifier. 
+
+                                                                           4. Experiments 
+
+                                                                           4.1. Dataset 
+
+                                                                              The experiment was conducted on two published datasets pertaining 
+                                                                           to ship-radiated noise: DeepShip   (Irfan et al., 2021) and  ShipsEar 
+                                                                           (Santos-Domínguez et al., 2016). These two datasets have been widely 
+                                                                           used in UATR, and their application in UATR will be further investigated 
+                                                                           in this study. Further details regarding the dataset are provided below. 
+                                                                              DeepShip   comprises  the data  of 265  different ships from  four 
+                                                                           different categories, totaling 47 h and 4 min. An icListen AF hydrophone 
+                                                                           was used to obtain radiated noise at a sampling frequency of 32,000 Hz. 
+                                                                           Ocean  Networks  Canada   is the source of this information. The four 
+                                                                           categories are Cargo, Passengership, Tanker,  and Tug. In our  experi­
+                                                                           ment, the sample length was 3 s, the samples did not overlap, and the 
+                                                                           total number  of samples  was  56,468.  We  randomly   segmented  the 
+                                                                           dataset into training and test sets at a ratio of 7:3. The training and test 
+                                                                           sets contained 39,528 and 16,940 samples, respectively. 
+                                                                              The  ShipsEar database  was  derived from  several vessels cruising 
+                                                                           along the Atlantic coast of northwest Spain. A DigitalHYD SR-1 recorder 
+                                                                           was used to obtain radiated noise at a sampling frequency of 52,734 Hz. 
+                                                                           The dataset contains data from 11 types of ships and background noise. 
+                                                                           Among   them, 11 types  of ships are classified into four types of ship- 
+                                                                           radiated noise based on the ship size. Therefore, the dataset is finally 
+                                                                           classified into five categories as follows: 
+
+Fig. 9. ROC curves of different methods on test set. Here, (1) to (6) in legend Class A: Background noise. 
+refer to Methods 1 to 6, respectively. 
+                                                                              Class B: Fishing boats, trawlers, mussel boats, tugboats and dredgers. 
+                                                                              Class C: Motorboats, pilot boats, and sailboats. 
+̃
+MW  = Fscale (mW , gW ) = gW mW                                   (13)        Class D: Passenger ferries. 
+                                                                              Class E: Ocean liners and ro-ro vessels. 
+3.2.3. CFTANet 
+   To enhance the input features adaptively, we first input the SC-Mel        The sample length of the ShipsEar dataset is 5 s, and the samples do 
+spectrogram  features into the frequency  attention module.  The  fre­     not overlap, thus resulting in 2223 samples. We randomly segmented 
+quency attention module explicitly models the interdependence of fre­      the dataset into training and test sets at a ratio of 7:3. The training and 
+quency dimensions and transmits effective features through squeezing       test sets contained 1556 and 667 samples, respectively. 
+and excitation to enhance the subsequent convolution feature learning.        In the experiment, the sampling rate was set to 16,000 Hz. When the 
+Therefore, adding a frequency attention module before the first convo­     signal was Fourier transformed, the length of the FFT window was set to 
+lution can effectively improve the utilization rate of the frequency in­   2048, the frameshift was set to 512, and the Hanning window function 
+formation  in the feature map  and accelerate the convergence   of the     was used. For sub-band Mel filtering, our method used three indepen­
+model. As shown in Table 1, the convolution layer after the frequency      dent groups  of 128  Mel filter banks in frequency  bands of 0–1000, 
+attention layer, the maximum pooling layer, and the two simple residual    1000–4000, and 4000–8000 Hz; subsequently, the three obtained sub- 
+blocks down-sampled the input feature map four times. After the first      band Mel spectrograms were concatenated along the frequency direc­
+convolution layer and the convolution layers in the two simple residual    tion to obtain 384-dimensional Mel features. For the DeepShip dataset, 
+blocks, batch normalization was applied to normalize the data batches,     the number of frames for each dimension of the Mel feature was 94, and 
+and then nonlinear mapping was performed using an h-swish activation       the feature shape measured   384 ×  94. For the ShipsEar  dataset, the 
+
+                                                                        9
+S. Yang et al.                                                                                                                                                                Engineering                  Applications                  of    Artificial                Intelligence            133 (2024) 107983
+
+
+               Fig. 10. Accuracy of different methods on various categories on test set. Abnormal samples are represented by black diamonds.  
+
+number of frames for the Mel feature in each dimension was 157, and the    three evaluation indicators above, the weighted average scores of the 
+feature shape measured 384 ×   157.                                        CFTANet on DeepShip were 90.66%, 90.60%, and 0.9059, respectively, 
+                                                                           whereas those of the CFTANet on ShipsEar were 96.41%, 96.40%, and 
+4.2. Setup and parameter                                                   0.9640, respectively. For the CFTANet results on DeepShip, the Tug class 
+                                                                           indicated the best F1-score. For the results of CFTANet  on ShipsEar, 
+   The adaptive moment estimation (Adam) optimizer (Kingma and Ba,         Class A (background noise) indicated the best F1-score. Compared with 
+                                          
+2015) with L2 regularization (set to 4 × 10 5) was employed. The initial   the DeepShip test set, the ShipsEar test set indicated a greater difference 
+learning rate (set to 0.001) multiplied by the cosine learning rate-decay  in sample size between classes; however, its precision, recall, and F1- 
+function (He et al., 2019), which accelerates the training process, de­    score for each class exceeded 90%.  Therefore, the CFTANet   is appli­
+termines the learning rate of the training process. The batch size was 64, cable under imbalanced sample categories. 
+50  training  epochs  were   used, and   the  cost function  was   the        Subsequently,  t-SNE  visualization (Van der  Maaten  and  Hinton, 
+cross-entropy error (Goodfellow et al., 2016).                             2008) was applied to observe the distribution of different categories in a 
+                                                                           high-dimensional  feature space. We  selected the t-SNE  visualization 
+5. Results and discussion                                                  result with the highest accuracy from the 10 repeated experiments. A 
+                                                                           feature distribution map on the DeepShip test set is shown in Fig. 7 (a). 
+   All experiments  were  performed  using Pytorch  1.7.1 and  Python      The data points of the Tug class were clustered well in the feature space, 
+version 3.8.5, and verified using computers  with an NVIDIA   GeForce      whereas dataset overlap occurred among the Cargo, Passengership, and 
+RTX 3090 GPU and a Core i9-10900 K CPU.                                    Tanker categories. Meanwhile, the feature data points of the Cargo class 
+                                                                           did not cluster well together, and their intraclass consistency was un­
+                                                                           satisfactory, as confirmedby  the higher F1-score of the Tug class and the 
+5.1. Recognition performance 
+                                                                           lower F1-score of the Cargo  class (see Table 2). Fig. 7(b) shows the 
+                                                                           feature distribution diagram on the ShipsEar test set. Compared with the 
+   First, the recognition performance of the CFTANet model was tested 
+                                                                           feature map on the DeepShip test set, the feature map on the ShipsEar 
+on the DeepShip and ShipsEar datasets. We conducted 10 repeated ex­
+                                                                           test set contained category  feature information  that was  easier to 
+periments  on the two  datasets to ensure the reliability of the experi­
+                                                                           distinguish. 
+ments. In the repeated experiments, 10 random seeds were used for data 
+                                                                              Moreover, we compared the recognition performance of the CFTA­
+segmentation. Table 2 lists the average indicators of the CFTANet for 
+                                                                           Net model  with those  of previous models. For  the DeepShip  dataset, 
+each class on the two  test datasets, which describe the classification 
+                                                                           Table 3 show a comparison between the proposed CFTANet model with 
+system in terms of the precision, recall, and F1-score. The supporting 
+                                                                           a method based on deep learning (Irfan et al., 2021; Tian et al., 2023; 
+information in Table 2 refers to the number of samples. In terms of the 
+
+                                                                       10
+S. Yang et al.                                                                                                                                                                Engineering                  Applications                  of    Artificial                Intelligence            133 (2024) 107983
+
+
+       Fig. 11.  Mel-based features on various samples on test set. Left and right images for each category show Mel and SC-Mel spectrograms, respectively.  
+
+
+                                                                                      11
+S. Yang et al.                                                                                                                                                                Engineering                  Applications                  of    Artificial                Intelligence            133 (2024) 107983
+
+Ren et al., 2022; Xie et al., 2022; Zhang and Zeng, 2023; Xu et al., 2023; the actual accuracy of the algorithm and the expected accuracy under 
+Liu et al., 2022). As shown, the accuracy of the proposed CFTANet model    random  conditions. The  higher the kappa  value, the greater was the 
+on the DeepShip dataset was 13.07%, 11.10%, 9.21%, 14.04%, 7.66%,          difference between  the accuracy  of the classification algorithm and 
+10.38%,  and 7.06%   higher than those of SCAE,  Lightweight MSRDN,        random  classification. The kappa value of Method 1  was  the highest, 
+UALF, UART, MSLEFC, Swin Transformer, and ConvNeXt, respectively.          which shows that the difference between the classificationresults  of the 
+Meanwhile, the parameters and FLOPs of the proposed CFTANet model          CFTANet  model in Method   1 and random    classification was the most 
+were significantly lower than those of the other models.                   significant, and that the classification results were more reliable. 
+   For the ShipsEar dataset, Table 4 shows a comparison of the CFTANet        In addition, we  used the  receiver operating characteristic (ROC) 
+model with methods based on deep learning (Santos-Domínguez et al.,        metric to evaluate the classifier output quality. The shape of the ROC 
+2016; Liu et al., 2021b; Hong et al., 2021; Khishe, 2022; Wang et al.,     curve and  its proximity to the upper-left corner reflect the classifier 
+2023; Li et al., 2022; Chen et al., 2024; Liu et al., 2022). As shown in   performance. The closer the curve is to the upper left corner, the better is 
+Table 4, the accuracy of our model on the ShipsEar dataset was 21.00%,     the classifier performance. The area under the ROC curve   (AUC) was 
+1.80%,  2.10%,  1.91%,  and  4.5%  higher than  those of the baseline,     used to quantitatively evaluate the classifier performance. Fig. 9 shows 
+CRNN, ResNet18, DRW-AE, and ConvNeXt, respectively. The parame­            the ROC curves and AUC values obtained using the macro- and micro- 
+ters and FLOPs of the DRW-AE network architecture were the lowest;         averages, respectively. As shown, Method   1 yielded the highest AUC 
+however, its recognition accuracy was lower than that of CFTANet. The      value under  the macro-  and  micro-averages. This indicates that the 
+parameters  and FLOPs of the CFTANet model and CRNN model were             overall performance of Method 1 and its performance in each category 
+similar, whereas the accuracy of the CFTANet was higher than that of       were the best. 
+the CRNN August data model. Although the accuracy of the CFTANet              To better understand the performance distribution of each method in 
+model was lower than that of the AMNet, STM +    AudioSet, and HUAT        different categories, we compared the accuracy changes in various cat­
+models, its parameters and FLOPs were lower than those of the three        egories of the samples on the test set, as shown in Fig. 10. Comparing the 
+models.  Therefore, the CFTANet   achieved  a good  trade-off between      median and upper and lower quartile scores of Methods 1 and 2 on the 
+accuracy and model size on the ShipsEar dataset.                           four types of test sets, we discovered that the SC-Mel features effectively 
+                                                                           improved the median and upper and lower quartile scores and that the 
+5.2. Ablation experiment                                                   data distribution was more concentrated; in other words, the intraclass 
+                                                                           consistency of the SC-Mel  features was greater than  that of the Mel 
+   In this section, we analyze and evaluate the effects of the feature and features. Comparing Method 1 with Method 3, the frequency attention 
+attention modules on the UATR system based on the DeepShip dataset.        and CFTA block modules in the CFTANet model effectively improved the 
+The comprehensive performances of the different methods are listed in      median, upper, and lower quartile scores for the data pertaining to the 
+Table 5. We labeled these methods as Methods 1–6. The accuracy and         four types of test sets. In addition, the median and upper and  lower 
+F1-score were used to measure the recognition effect of the recognition    quartile scores of Method 1 were the highest for the four types of test set 
+system, and the parameters and FLOPs values were used to measure the       data, whereas the score range of the outliers was wider, thus indicating 
+model  size. In Method  1, the  UATR   system proposed  in  Section 2,     that the performance of the SC-Mel features combined with the CFTANet 
+namely, the SC-Mel spectrogram feature in Section 2.1 and the CFTANet      model  was  relatively better in most samples; this indicates that the 
+model  in Section 2.2, was used. In contrast to the feature-extraction     proposed method has good generalization ability but does not perform 
+method described in Section 2.1, Method 2 directly used the Mel spec­      well on some specificsamples,  which may include extreme data points. 
+trogram of the entire frequency band of the signal with 128 Mel filters.      In addition, we constructed Mel and SC-Mel spectrograms to visu­
+Therefore, the input data size of the CFTANet model in Method 2 was        alize feature extraction. As shown in Fig. 11, the low-frequency  line 
+128  × 94. Using  the SC-Mel  spectrogram, the number   of parameters      spectrum characteristics presented in the SC-Mel spectrogram are more 
+increased by 8.25%, the accuracy gain was 3.86%, and the F1-score gain     prominent than those in the Mel spectrogram. The frequency range of 
+was 0.0392; however, the FLOPs increased by 199.95%.                       the target signal in the ship-radiation noise was primarily concentrated 
+   In Methods 3–6, the effects of the frequency attention module and       in the low-frequency range of 0–1000 Hz, whereas the high-frequency 
+CFTA   block  on  the entire recognition  system  were  evaluated  by      band  (e.g., 4000–8000  Hz)  contained noise  or other environmental 
+removing some attention modules from the CFTANet model. In Method          sounds. The SC-Mel spectrogram uses the same number of Mel filtersas  
+3, all attention modules in the CFTANet model were removed. In Method      the high-frequency broadband in the narrow low-frequency band; thus, 
+4, only the frequency attention module before the firstconvolution  layer  the frequency resolution of the low-frequency  spectrogram  is higher, 
+was  retained. In Method   5, only the CFTA   block module   after the     and more   detailed feature information  regarding the low-frequency 
+maximum    pool layer was  retained. In Method  6, only the two CFTA       band can be obtained. 
+block modules  behind  the two  simple residual blocks were  retained. 
+Compared with Method 3, Method 1 increased the parameter by 15.29%         5.3. Discussion 
+and the FLOPs by 0.05%, as well as improved the accuracy by 10.16% 
+and  the F1-score  by 0.1033.  Compared   with  Method   3, Method  4         In this study, a UATR system based on the SC-Mel spectrogram and 
+increased the parameters by 8.98% and the FLOPs by 0.03%, as well as       CFTANet model was proposed, and the effectiveness and superiority of 
+improved the accuracy by 8.71% and the F1-score by 0.0887. Compared        the recognition system  were  verified on the DeepShip  and  ShipsEar 
+with Method 3, Method 5 increased the number of parameters by 0.89%        datasets. Previous studies have primarily focused on the contribution of 
+                              
+and the FLOPs by   2.53 ×  10 5, as well as improved  the accuracy by      the SC-Mel  spectrogram   and  multidomain   attention mechanism   to 
+7.88% and the F1-score by 0.0806. Compared with Method 3, Method 6         UATR. Simultaneously, the recognition system was analyzed in terms of 
+increased the parameters by 5.43% and the FLOPs by 0.02%, as well as       feature complexity, model complexity, and performance differences for 
+improved the accuracy by 7.44% and the F1-score by 0.0757. In sum­         different categories. Frequency attention and CFTA   blocks are light­
+mary,  Method  1  afforded the best recognition effect. The frequency      weight  and  independent,  and  can be  widely  embedded   in various 
+attention module  and the three CFTA   block modules  in the CFTANet       network  frameworks,   thus  providing  more  possibilities for future 
+model contributed to the finalrecognition  effect, and the increase in the research and practical applications. 
+parameters and FLOPs was acceptable.                                          Although  we  verified our recognition system for open  datasets in 
+   Fig. 8 shows the confusion matrix of the six methods on the test set.   different sea areas, the discrepancy among underwater acoustic propa­
+Table 6 lists the kappa values corresponding to the confusion matrices     gation channels in different sea areas affects the recognition perfor­
+obtained using various methods. The kappa value was used to calculate      mance. In UATR, we typically encounter situations in which the training 
+
+                                                                       12
+S. Yang et al.                                                                                                                                                                Engineering                  Applications                  of    Artificial                Intelligence            133 (2024) 107983
+
+and testing samples are from different sea areas. When the sea areas are                  Choi, J., Choo, Y., Lee, K., 2019. Acoustic classificationof  surface and underwater vessels 
+inconsistent,   the  recognition    performance     inevitably   deteriorates.   To           in the ocean using supervised machine learning. Sensors 19 (16), 3492. 
+                                                                                          Domingos, L.C.F., Santos, P.E., Skelton, P.S.M., et al., 2022. A survey of underwater 
+improve the performance of the recognition system under mismatched                            acoustic data classification methods using deep learning for shoreline surveillance. 
+sea conditions, a more robust recognition system should be established.                       Sensors 22 (6), 2181. 
+                                                                                          Dosovitskiy, A., Beyer, L., Kolesnikov, A., et al., 2020. An Image Is Worth 16x16 Words: 
+                                                                                              Transformers for Image Recognition at Scale arxiv preprint arxiv:2010.11929.  
+6.  Conclusion                                                                            Dzikowicz, B.R., Yoritomo, J.Y., Heddings, J.T., et al., 2023. Demonstration of spiral 
+                                                                                              wavefront navigation on an unmanned underwater vehicle. IEEE J. Ocean. Eng. 48 
+                                                                                              (2), 297–306. 
+    Herein, a UATR system combining an SC-Mel spectrogram and the                         Feng, S., Zhu, X., 2022. A transformer-based deep learning network for underwater 
+CFTANet model was proposed. A sub-band Mel filterwas               used to extract            acoustic target recognition. Geosci. Rem. Sens. Lett. IEEE 19, 1–5. 
+the spectrogram features of multiple sub-bands, and a SC-Mel spectro­                     Ferguson, E.L., Ramakrishnan, R., Williams, S.B., Jin, C.T., 2017. Convolutional neural 
+gram was obtained by concatenating the Mel spectrograms of multiple                           networks for passive monitoring of a shallow water environment using a single 
+                                                                                              sensor. In: Proceedings of the 2017 IEEE International Conference on Acoustics, 
+sub-bands, which effectively yielded more detailed feature information                        Speech and Signal Processing (ICASSP), New Orleans, LA, USA, 5–9 March, 
+from    low-frequency     bands.    Subsequently,     the   frequency    attention            pp. 2657–2661. 
+module    and  CFTA    block  module    were   proposed,    and  they   were  inte­       Ge, Q., Ruan, F., Qiao, B., Zhang, Q., Zuo, X., Dang, L., 2021. Side-scan sonar image 
+                                                                                              classificationbased  on style transfer and pre-trained convolutional neural networks. 
+grated into a simple residual network to realize the efficientlearning          and           Electronics 10, 1823. 
+recognition of target features.                                                           Goodfellow, I.J., Pouget-Abadie, J., Mirza, M., et al., 2014. Generative adversarial nets. 
+    We evaluated the effectiveness of the proposed UATR system on the                         In: Proceedings of the 27th International Conference on Neural Information 
+                                                                                              Processing Systems. Canada, Montreal.  
+DeepShip    and   ShipsEar   datasets.   Compared     with  other   deep-learning         Goodfellow, I., Bengio, Y., Courville, A., 2016. Deep Learning[M]. MIT Press, Cambridge, 
+methods,    the   CFTANet     model    is  more    advantageous.     In  addition,            MA, USA, p. 800. https://doi.org/10.1007/s10710-017-9314-z. ISBN: 0262035618.  
+because   the  parameters     and  FLOPs    of the  CFTANet     model    are light­       Guo, M.H., Xu, T.X., Liu, J.J., et al., 2022. Attention mechanisms in computer vision: a 
+                                                                                              survey. Computational visual media 8 (3), 331–368. 
+weight, they are highly promising for practical applications, particularly                Haykin, S., Van Veen, B., 2007. Signals and systems[M]. John Wiley & Sons. 
+on underwater unmanned platforms.                                                         He, K., Zhang, X., Ren, S., 2016. Deep residual learning for image recognition. In: Las 
+    Ablation   experiments     were  performed     on  the  DeepShip    dataset  to           Vegas: 2016 IEEE Conference on Computer Vision and Pattern Recognition. CVPR), 
+                                                                                              pp. 770–778. 
+evaluate   the   effectiveness   of  the  SC-Mel   spectrogram     and   attention        He, T., Zhang, Z., Zhang, H., 2019. Bag of tricks for image classification with 
+modules. The experimental results demonstrated that the SC-Mel spec­                          convolutional neural networks. In: Proceedings of the IEEE/CVF Conference on 
+trogram,   frequency    attention   module,   and   CFTA    block  facilitated  the           Computer Vision and Pattern Recognition, pp. 558–567. https://doi.org/10.1109/ 
+performance improvement of the proposed UATR system. In addition,                             CVPR.2019.00065. 
+                                                                                          Hinton, G.E., Salakhutdinov, R.R., 2006. Reducing the dimensionality of data with neural 
+the proposed UATR system effectively improved the prediction accuracy                         networks. Science 313 (5786), 504–507. https://doi.org/10.1126/science.1127647. 
+and generalization ability, although it presented a wide distribution of                  Hong, F., Liu, C., Guo, L., et al., 2021. Underwater acoustic target recognition with a 
+outliers. The reduction of outliers must be addressed in future studies.                      residual network and the optimized feature extraction method. Appl. Sci. 11 (4), 
+                                                                                              1442. 
+                                                                                          Hou, S., Jiao, D., Dong, B., et al., 2022. Underwater inspection of bridge substructures 
+CRediT authorship contribution statement                                                      using sonar and deep convolutional network. Adv. Eng. Inf. 52, 101545. 
+                                                                                          Howard, A., Sandler, M., Chu, G., et al., 2019. Searching for mobilenetv3. In: 
+                                                                                              Proceedings of the IEEE/CVF International Conference on Computer Vision, 
+    Shuang     Yang:   Conceptualization,      Formal   analysis,   Investigation,            pp. 1314–1324. 
+Methodology,      Writing   –  original   draft.  Anqi   Jin:   Formal    analysis,       Hu, J., Shen, L., Sun, G., 2018. Squeeze-and-excitation networks. In: Proceedings of the 
+                                         –                                                    IEEE Conference on Computer Vision and Pattern Recognition, pp. 7132–7141. 
+Investigation,   Resources,    Writing      original  draft.  Xiangyang      Zeng:        Irfan, M., Jiangbin, Z., Ali, S., et al., 2021. DeepShip: an underwater acoustic benchmark 
+Funding acquisition, Supervision,        Writing –   review &    editing. Haitao              dataset and a separable convolution based autoencoder for classification. Expert 
+Wang: Writing – review & editing. Xi Hong: Resources. Menghui Lei:                            Syst. Appl. 183, 115270. 
+Resources.                                                                                Jiang, Z., Zhao, C., Wang, H., 2022. Classification of underwater target based on S- 
+                                                                                              ResNet and modified DCGAN models. Sensors 22 (6), 2293. 
+                                                                                          Jin, A., Zeng, X., 2023. A novel deep learning method for underwater target recognition 
+                                                                                              based on res-dense convolutional neural network with attention mechanism. J. Mar. 
+Declaration of competing interest                                                             Sci. Eng. 11 (1), 69. 
+                                                                                          Khishe, M., 2022. Drw-ae: a deep recurrent-wavelet autoencoder for underwater target 
+                                                                                              recognition. IEEE J. Ocean. Eng. 47 (4), 1083–1098. 
+    The authors declare that they have no known competing financial                       Kim, K.I., Pak, M.I., Chon, B.P., Ri, C.H., 2021. A method for underwater acoustic signal 
+interests or personal relationships that could have appeared to influence                     classification using convolutional neural network combined with discrete wavelet 
+the work reported in this paper.                                                              transform. Int. J. Wavelets, Multiresolut. Inf. Process. 19, 2050092. 
+                                                                                          Kingma, D., Ba, J., 2015. Adam: A Method for Stochastic Optimization. ICLR. 
+                                                                                          Kipf, T.N., Welling, M., 2016. Semi-supervised Classification with Graph Convolutional 
+Data availability                                                                             Networks arxiv preprint arxiv:1609.02907.  
+                                                                                          Koening, W., 1949. A New Frequency Scala for Acoustic Measurements. Bell Lab Rec., 
+                                                                                              pp. 299–301 
+    The authors do not have permission to share data.                                     Krizhevsky, A., Sutskever, I., Hinton, G.E., 2012. Imagenet classification with deep 
+                                                                                              convolutional neural networks. In: Proceedings of the 25th International Conference 
+Acknowledgments                                                                               on Neural Information Processing Systems. Lake Tahoe, USA.  
+                                                                                          Li, X., Wang, W., Hu, X., et al., 2019. Selective kernel networks. In: Proceedings of the 
+                                                                                              IEEE/CVF Conference on Computer Vision and Pattern Recognition, pp. 510–519. 
+    This research is supported by the National Natural Science Founda­                    Li, P., Wu, J., Wang, Y., et al., 2022. STM: spectrogram transformer model for 
+tion of China under grant number 52271351.                                                    underwater acoustic target recognition. J. Mar. Sci. Eng. 10 (10), 1428. 
+                                                                                          Lin, C., Cheng, Y., Wang, X., et al., 2023. Transformer-based dual-channel self-attention 
+                                                                                              for UUV autonomous collision avoidance. IEEE Trans. Intell. Veh. 
+References                                                                                Liu, G., Sun, C., Yang, Y., 2008. Target feature extraction for passive sonar based on two 
+                                                                                              cepstrums. In: Proceedings of the 2008 2nd International Conference on 
+                                                                                              Bioinformatics and Biomedical Engineering, Shanghai, China, 16–18 May, 
+Boashash, B., O’shea, P., 1990. A methodology for detection and classification of some 
+                                                                                              pp. 539–542. 
+    underwater acoustic signals using time-frequency analysis techniques. IEEE Trans. 
+                                                                                          Liu, Z., Lin, Y., Cao, Y., et al., 2021a. Swin transformer: hierarchical vision transformer 
+    Acoust. Speech Signal Process. 38 (11), 1829–1841. 
+                                                                                              using shifted windows. In: 2021 IEEE/CVF International Conference on Computer 
+Chen, Y., Xu, X., 2017. The research of underwater target recognition method based on 
+                                                                                              Vision (ICCV), Montreal, Canada, pp. 9992–10002. https://doi.org/10.1109/ 
+    deep learning. In: Proceedings of the 2017 IEEE International Conference on Signal 
+                                                                                              ICCV48922.2021.00986. 
+    Processing, Communications and Computing. ICSPCC), Xiamen, China, 22–25 
+                                                                                          Liu, F., Shen, T., Luo, Z., et al., 2021b. Underwater target recognition using convolutional 
+    October.  
+                                                                                              recurrent neural networks with 3-D Mel-spectrogram and data augmentation. Appl. 
+Chen, L., Luo, X., Zhou, H., 2024. A ship-radiated noise classification method based on 
+                                                                                              Acoust. 178, 107989. 
+    domain knowledge embedding and attention mechanism. Eng. Appl. Artif. Intell. 
+    127, 107320. 
+
+                                                                                      13
+S. Yang et al.                                                                                                                                                                Engineering                  Applications                  of    Artificial                Intelligence            133 (2024) 107983
+
+Liu, Z., Mao, H., Wu, C.Y., et al., 2022. A convnet for the 2020s. In: Proceedings of the Wang, Q., Wu, B., Zhu, P., et al., 2020b. ECA-Net: efficient channel attention for deep 
+    IEEE/CVF Conference on Computer Vision and Pattern Recognition,                           convolutional neural networks. In: Proceedings of the IEEE/CVF Conference on 
+    pp. 11976–11986.                                                                          Computer Vision and Pattern Recognition, pp. 11534–11542. 
+Park, S.R., Lee, J., 2017. A fully convolutional neural network for speech enhancement.   Wang, B., Zhang, W., Zhu, Y., et al., 2023. An underwater acoustic target recognition 
+    Interspeech 2017. In: 18th Annual Conference of the International Speech                  method based on AMNet. Geosci. Rem. Sens. Lett. IEEE. 
+    Communication Association, Stockholm, Sweden. https://doi.org/10.21437/               Wei, X., Gang-Hu, L.I., Wang, Z.Q., 2011. Underwater target recognition based on 
+    Interspeech.2017-1465.                                                                    wavelet packet and principal component analysis. Comput. Simulat. 28, 8–290. 
+Ren, J., Xie, Y., Zhang, X., et al., 2022. UALF: a learnable front-end for intelligent    Woo, S., Park, J., Lee, J.Y., et al., 2018. Cbam: convolutional block attention module. In: 
+    underwater acoustic classification system. Ocean Eng. 264, 112394.                        Proceedings of the European Conference on Computer Vision (ECCV), pp. 3–19. 
+Santos-Domínguez, D., Torres-Guijarro, S., Cardenal-Lopez,´  A., et al., 2016. ShipsEar: an Xie, Y., Ren, J., Xu, J., 2022. Underwater-art: expanding information perspectives with 
+    underwater vessel noise database. Appl. Acoust. 113, 64–69.                               text templates for underwater acoustic target recognition. J. Acoust. Soc. Am. 152 
+Simonyan, K., Zisserman, A., 2014. Very Deep Convolutional Networks for Large-Scale           (5), 2641–2651. 
+    Image Recognition arxiv preprint arxiv:1409.1556.                                     Xu, K., Huang, H., Deng, P., et al., 2021. Deep feature aggregation framework driven by 
+Song, S., Lan, C., Xing, J., et al., 2017. An end-to-end spatio-temporal attention model for  graph convolutional network for scene classification in remote sensing. IEEE 
+    human action recognition from skeleton data. Proc. AAAI Conf. Artif. Intell. 31 (1).      Transact. Neural Networks Learn. Syst. 33 (10), 5751–5765. 
+Song, X., Wu, C., Stojanovic, V., et al., 2023. 1 bit encoding–decoding-based event-      Xu, K., Xu, Q., You, K., et al., 2023. Self-supervised learning–based underwater acoustical 
+    triggered fixed-timeadaptive  control for unmanned surface vehicle with guaranteed        signal classification via mask modeling. J. Acoust. Soc. Am. 154 (1), 5–15. 
+    tracking performance. Control Eng. Pract. 135, 105513.                                Yang, S., Xue, L., Hong, X., Zeng, X., 2023. A lightweight network model based on an 
+Teng, B., Zhao, H., 2020. Underwater target recognition methods based on the                  attention mechanism for ship-radiated noise classification. J. Mar. Sci. Eng. 11 (2), 
+    framework of deep learning: a survey. Int. J. Adv. Rob. Syst. 17 (6),                     432. 
+    1729881420976307.                                                                     Zhang, Y., Zeng, Q., 2023. MSLEFC: a low-frequency focused underwater acoustic signal 
+Tian, S.Z., Chen, D.B., Fu, Y., et al., 2023. Joint learning model for underwater acoustic    classification and analysis system. Eng. Appl. Artif. Intell. 123, 106333. 
+    target recognition. Knowl. Base Syst. 260, 110119.                                    Zhang, J., Ding, W., He, L., 2019a. Data augmentation and prior knowledge-based 
+Tijjani, A.S., Chemori, A., Creuze, V., 2022. A survey on tracking control of unmanned        regularization for sound event localization and detection. In: DCASE 2019 Detection 
+    underwater vehicles: experiments-based approach. Annu. Rev. Control.                      and Classification of Acoustic Scenes and Events 2019 Challenge. 
+Vahidpour, V., Rastegarnia, A., Khalili, A., 2015. An automated approach to passive       Zhang, R., Li, J., Sun, H., et al., 2019b. Scan: self-and-collaborative attention network for 
+    sonar classification using binary image features. J. Mar. Sci. Appl. 14, 327–333.         video person re-identification. IEEE Trans. Image Process. 28 (10), 4870–4882. 
+Van der Maaten, L., Hinton, G., 2008. Visualizing data using t-SNE. J. Mach. Learn. Res. 9 Zhu, P., Zhang, Y., Huang, Y., et al., 2023a. Underwater acoustic target recognition based 
+    (11).                                                                                     on spectrum component analysis of ship radiated noise. Appl. Acoust. 211, 109552. 
+Vaswani, A., Shazeer, N., Parmar, N., et al., 2017. Attention is all you need. In:        Zhu, M., Zhang, X., Jiang, Y., et al., 2023b. Hybrid underwater acoustic signal multi- 
+    Proceedings of the 31st International Conference on Neural Information Processing         target recognition based on DenseNet-LSTM with attention mechanism. In: Chinese 
+    Systems. Long Beach, USA.                                                                 Intelligent Automation Conference. Springer Nature Singapore, Singapore, 
+Wang, G., Yang, Y., Wang, S., 2020a. Ocean thermal energy application technologies for        pp. 728–738. 
+    unmanned underwater vehicles: a comprehensive review. Appl. Energy 278, 
+    115752. 
+
+
+                                                                                      14
